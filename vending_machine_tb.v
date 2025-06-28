@@ -1,83 +1,70 @@
-`timescale 1ns / 1ps
+// Predefining the clock period
+`define clock_period 10
 
-module vending_machine_tb;
+// Module for the testbench
+module VendingMachine_TestBench();
+    // Defining the inputs and the outputs
+    reg [3:0] item_number;
+    reg nickel_in, dime_in, clock, reset;
+    wire nickel_out, dispense;
+    
+    // Calling the module 
+    VendingMachine VM(.item_number(item_number), .nickel_in(nickel_in), .dime_in(dime_in), .clock(clock), .reset(reset), .nickel_out(nickel_out), .dispense(dispense));
 
-    // Inputs
-    reg clk;
-    reg rst;
-    reg [1:0] in;
+    // Intialising the clock value
+    initial clock = 1;
 
-    // Outputs
-    wire out;
-    wire [1:0] change;
+    // Updating clock value at a regular interval
+    always #(`clock_period/2) clock = (~clock);
 
-    // Instantiate the DUT (Device Under Test)
-    vending_machine uut (
-        .clk(clk),
-        .rst(rst),
-        .in(in),
-        .out(out),
-        .change(change)
-    );
-
-    // Clock generation: 10ns period (100 MHz)
-    always #5 clk = ~clk;
-
-    // Test sequence
+    // Input beginning
     initial begin
-        // Initialize inputs
-        clk = 0;
-        rst = 1;
-        in = 2'b00;
+        // Initialising the values
+        item_number = 4'b0100;
+        nickel_in = 0;
+        dime_in = 0;
+        reset = 0;
 
-        // Reset pulse
-        #10;
-        rst = 0;
+        // Giving new inputs at regular intervals
+        #(`clock_period);
+        reset = 1;
 
-        // Test case 1: Insert ₹5
-        #10; in = 2'b01; // ₹5
-        #10; in = 2'b00; // no input
-        #10;
+        #(`clock_period);
+        reset = 0;
 
-        // Test case 2: Insert ₹10 → Should dispense (₹5+₹10 = ₹15)
-        in = 2'b10; // ₹10
-        #10; in = 2'b00;
-        #10;
+        #(`clock_period);
+        nickel_in = 1;
+        dime_in = 0;
+        
+        #(`clock_period);
+        nickel_in = 0; 
+        dime_in = 1;
 
-        // Test case 3: Insert ₹10
-        in = 2'b10;
-        #10; in = 2'b00;
-        #10;
+        #(`clock_period);
+        nickel_in = 0;
+        dime_in = 0;
+        
+        #(`clock_period);
+        nickel_in = 1;
+        dime_in = 0;
 
-        // Test case 4: Insert ₹5 → Should dispense
-        in = 2'b01;
-        #10; in = 2'b00;
-        #10;
+        #(`clock_period);
+        nickel_in = 0;
+        dime_in = 1;
 
-        // Test case 5: Insert ₹10
-        in = 2'b10;
-        #10; in = 2'b10; // Insert another ₹10 → Should dispense + return ₹5
-        #10; in = 2'b00;
-        #10;
+        #(`clock_period);
+        nickel_in = 0;
+        dime_in = 0;
 
-        // Test case 6: Insert ₹5, then ₹5 → Should move to ₹10 state
-        in = 2'b01;
-        #10; in = 2'b01;
-        #10; in = 2'b00;
-        #10;
+        #(`clock_period);
 
-        // Test case 7: Timeout or refund → input nothing after ₹10
-        in = 2'b00;
-        #10;
-
-        // Finish
+        #(`clock_period*5);
         $finish;
     end
 
-    // Monitor outputs
+    // Dumping the file and variables
     initial begin
-        $display("Time\tin\tout\tchange\tstate");
-        $monitor("%0dns\t%b\t%b\t%b", $time, in, out, change);
+        $dumpfile("dumpfile.vcd");
+        $dumpvars; 
     end
-
 endmodule
