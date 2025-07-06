@@ -213,7 +213,7 @@ module Item_Four(nickel_in, dime_in, clock, reset, nickel_out, dispense);
             
             S15:
                 if(nickel_in)      begin next_state = S20; {nickel_out, dispense} = 2'b00; end
-                else if(dime_in)   begin next_state = S25; {nickel_out, dispense} = 2'b01; end
+                else if(dime_in)   begin next_state = S25; {nickel_out, dispense} = 2'b00; end
                 else               begin next_state = S15; {nickel_out, dispense} = 2'b00; end
             
             S20:
